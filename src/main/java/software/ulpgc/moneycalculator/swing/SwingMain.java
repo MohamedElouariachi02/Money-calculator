@@ -27,7 +27,7 @@ public class SwingMain extends JFrame {
         Command command = new ExchangeMoneyCommand(
                 main.moneyDialog().define(currencies),
                 main.currencyDialog().define(currencies),
-                new MockExchangeRateLoader(),
+                new FixerExchangeRateLoader(),
                 main.moneyDisplay());
         main.add("exchange money", command);
         main.setVisible(true);
