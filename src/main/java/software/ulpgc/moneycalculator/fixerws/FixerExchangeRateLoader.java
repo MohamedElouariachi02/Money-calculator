@@ -15,23 +15,27 @@ public class FixerExchangeRateLoader implements ExchangeRateLoader {
     @Override
     public ExchangeRate load(Currency from, Currency to) {
         try {
-            return loadJson(from, to);
+            return createRate(from, to);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-    private ExchangeRate loadJson(Currency from, Currency to) throws IOException {
+    private ExchangeRate createRate(Currency from, Currency to) throws IOException {
         URL url = new URL("https://data.fixer.io/api/latest?access_key=" + FixerAPI.key);
         try (InputStream is = url.openStream()) {
-            String result = new String(is.readAllBytes());
-            JsonObject asJsonObject = JsonParser.parseString(result).getAsJsonObject();
-            JsonObject rates = asJsonObject.get("rates").getAsJsonObject();
-
-            return new ExchangeRate(from, to, LocalDate.now(), calcu(rates.get(from.code()).getAsString(), rates.get(to.code()).getAsString()));
+            JsonObject rates = getRates(is);
+            return new ExchangeRate(from, to, LocalDate.now(), calculateRate(rates.get(from.code()).getAsString(), rates.get(to.code()).getAsString()));
         }
     }
 
-    private double calcu(String from, String to) {
+    private static JsonObject getRates(InputStream is) throws IOException {
+        String result = new String(is.readAllBytes());
+        JsonObject asJsonObject = JsonParser.parseString(result).getAsJsonObject();
+        JsonObject rates = asJsonObject.get("rates").getAsJsonObject();
+        return rates;
+    }
+
+    private double calculateRate(String from, String to) {
         return Double.parseDouble(to)/Double.parseDouble(from);
     }
 }
